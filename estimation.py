@@ -1,3 +1,4 @@
+
 # Maximum entropy distribution.
 import numpy as np
 import utils
@@ -106,7 +107,6 @@ class Synthesizer:
 		# print('b2 is', b2,b2.size)
 		return A2, b2
 
-# single_list是一维数组
 	def Maximum_entropy(single_list, double_dict, raw_domain, g):
 		domain = []
 		for i in range(len(raw_domain)):

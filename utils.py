@@ -5,11 +5,11 @@ class cartesian(object):
     def __init__(self):
         self._data_list=[]
 
-    def add_data(self,data=[]): #添加生成笛卡尔积的数据列表
+    def add_data(self,data=[]): 
         self._data_list.append(data)
 
-    def build(self): #计算笛卡尔积
-        #print(self._data_list)
+    def build(self): 
+
         for item in itertools.product(*self._data_list):
             print(item)
 def t_add(t1,t2):

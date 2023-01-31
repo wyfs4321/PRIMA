@@ -9,16 +9,14 @@ n = 100000
 p = 0.01
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--source_dimen', default=30, help='源数据值域')
-parser.add_argument('--target_dimen', default=10, help='压缩数据值域')
+parser.add_argument('--source_dimen', default=30)
+parser.add_argument('--target_dimen', default=10)
 
 opt, unknown = parser.parse_known_args()
 source_dimen = opt.source_dimen
 target_dimen = opt.target_dimen
 
-# 功能：读取高维数据集
-# 输入：fileName——需要读取的数据集的文件位置
-# 输出：df——返回读取的数据集的dataFrame形式
+
 def read_data_high_level(fileName):
     pd.set_option('display.max_columns', 500)
     pd.set_option('display.width', 1000)
@@ -28,11 +26,6 @@ def read_data_high_level(fileName):
     df = pd.read_csv(fileName, encoding='utf-8')
     return df
 
-# 功能：将高维数据集的值域压缩至10维
-# 输入：data_high——需要进行值域压缩的数据
-#       source_dimen——原始的值域大小
-#       target_dimen——压缩后的值域大小
-# 输出：df——返回值域压缩后的数据集
 def process_high_to_low(data_high, source_dimen, target_dimen):
     df = data_high.copy()
     for i in range(source_dimen):
