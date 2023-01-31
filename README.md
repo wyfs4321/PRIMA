@@ -1,6 +1,6 @@
 # PRIMA
 
-> This repository is the source code of PRIMA.
+> This repository contains the source code of PRIMA.
 ****
 # Structure of program
 In PRIMA, the code is stored in 8 files:
