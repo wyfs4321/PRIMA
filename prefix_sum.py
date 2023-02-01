@@ -5,10 +5,10 @@ import math
 from scipy.stats import norm,shapiro,kstest,normaltest,anderson
 import scipy.stats as stats
 import scipy
-import count_query
+import sum_query
 import auto_trip
 import argparse
-import max_entropy
+import construction
 import data_preprocess
 import time
 import datetime
@@ -26,7 +26,6 @@ p = 1e-5
 alpha = 1.0
 beta = 0.0
 max_f = 0.01
-r2t_beta = 0.1
 scale = 1
 
 def str2bool(str):
@@ -46,7 +45,7 @@ parser.add_argument('--maxf',default=0.01, type=float)
 parser.add_argument('--n',default=100000, type=int)
 parser.add_argument('--disable_maxentropy', type=str2bool,default="False")
 parser.add_argument('--disable_prefixSum', action='store_true')
-parser.add_argument('--clip_method', default='R2TP')
+parser.add_argument('--clip_method', default='April')
 parser.add_argument('--epsilon', default=3,type=float)
 parser.add_argument('--value_dimen_origin', default=30,type=int)
 parser.add_argument('--dataset', default='IPUMS')
@@ -106,30 +105,6 @@ def query_generate_dimension_two(df, a, b):
     # print(D_noise)
     return D_origin,D_noise
 
-def query_generate_dimension_two_with_R2T(df, a, b):
-    D_origin = np.zeros((value_dimen_process, value_dimen_process))
-    D_noise = np.zeros((value_dimen_process, value_dimen_process))
-    m_domain = np.int(df[target_column].max() + 1)
-
-    for i in range(value_dimen_process):
-        for j in range(value_dimen_process):
-            D_origin[i][j] = df.loc[(df[a] == i) & (df[b] == j), target_column].sum()
-            D_noise[i][j] = R2T(df, m_domain, a, b, i,j,epsilon,r2t_beta)
-    return D_origin,D_noise
-
-def query_generate_dimension_four_with_R2T(df, a, b, c, d):
-    D_origin = np.zeros((value_dimen_process, value_dimen_process, value_dimen_process, value_dimen_process))
-    D_noise = np.zeros((value_dimen_process, value_dimen_process, value_dimen_process, value_dimen_process))
-    m_domain = np.int(df[target_column].max() + 1)
-
-    for i in range(value_dimen_process):
-        for j in range(value_dimen_process):
-            for k in range(value_dimen_process):
-                for l in range(value_dimen_process):
-                    D_origin[i][j][k][l] = df.loc[(df[a] == i) & (df[b] == j) & (df[c] == k) & (df[d]==l), target_column].sum()
-                    D_noise[i][j][k][l] = R2T_four(df, m_domain, a, b,c,d,i,j,k,l,epsilon,r2t_beta)
-    return D_origin,D_noise
-
 
 def query_generate_dimension_four(df, a, b, c, d):
     # len_m = df[a].unique().__len__()
@@ -178,39 +153,8 @@ def difference_query(df,domain,Da,Db,b,epsilon_i):
 
     return summation
 
-def clip_target_column_SVT(df,threshold,m_domain,d_domain,epsilon,Da=None,Db=None,Dc=None,Dd=None):
-    bs = range(1, m_domain, int(m_domain/100))
-    best = 0
-    epsilon_i = epsilon / len(bs)
-    for b in bs:
-        tmp_df = auto_trip.data_trip(df, target_column, 0, b)
-        r = difference_query(tmp_df, d_domain,Da,Db,b,epsilon_i)
-        # if the new answer is pretty close to the old answer, stop
-        if abs(r - best) <= threshold:
-            return b
-        # otherwise update the "best" answer to be the current one
-        else:
-            best = r
-    return bs[-1]
-
-def R2T(df,m_domain,Da,Db,i,j,epsilon,beta):
-    bs=[2**k for k in range(1, int(math.log(m_domain,2)))]
-    r=[]
-    epsilon_i=epsilon/len(bs)
-    for b in bs:
-        tmp_df=auto_trip.data_trip(df, target_column, 0, b)
-        r.append(tmp_df.loc[(tmp_df[Da] == i) & (tmp_df[Db] == j), target_column].sum() + np.random.laplace(0, b / epsilon_i)-math.log(m_domain,2)*math.log(math.log(m_domain,2)/beta, math.e)*b/epsilon_i)
-    return max(r)
 
 
-def R2T_four(df,m_domain,Da,Db,Dc,Dd,i,j,k,l,epsilon,beta):
-    bs=[2**k for k in range(1, int(math.log(m_domain,2)))]
-    r=[]
-    epsilon_i=epsilon/len(bs)
-    for b in bs:
-        tmp_df=auto_trip.data_trip(df, target_column, 0, b)
-        r.append(tmp_df.loc[(tmp_df[Da] == i) & (tmp_df[Db] == j) & (tmp_df[Dc] == k) & (tmp_df[Dd]==l), target_column].sum() + np.random.laplace(0, b / epsilon_i)-math.log(m_domain,2)*math.log(math.log(m_domain,2)/beta, math.e)*b/epsilon_i)
-    return max(r)
 
 def fitter_judge(table):
     f = Fitter(table,distributions = ['uniform','norm']) 
@@ -445,10 +389,8 @@ def get_original_matrix(matrix):
 
 
 def query_noise_with_estimate(data, A, B, clip_method=None):
-    if clip_method=="R2TP":
-        origin, noise = query_generate_dimension_two_with_R2T(data, A, B)
-    else:
-        origin, noise = query_generate_dimension_two(data, A, B)
+
+    origin, noise = query_generate_dimension_two(data, A, B)
 
     if opt.disable_prefixSum:
         return origin, noise, noise
@@ -510,24 +452,11 @@ if __name__ == "__main__":
         if clip_method == "April":
             df = clip_target_column(df)
             clip_origin, clip_noise = query_generate_dimension_four(df, colum_list[0], colum_list[1], colum_list[2], colum_list[3])
-        elif clip_method == "SVTP":
-
-            m_domain = np.int(df[target_column].max() + 1)
-            max_range = clip_target_column_SVT(df, m_domain * 30, m_domain, value_dimen_process, epsilon, colum_list[0],
-                                               colum_list[1], colum_list[2], colum_list[3])
-            df = auto_trip.data_trip(df, target_column, 0, max_range)
-            clip_origin, clip_noise = query_generate_dimension_four(df, colum_list[0], colum_list[1], colum_list[2], colum_list[3])
-        elif clip_method=='R2TP':
-            clip_origin, clip_noise = query_generate_dimension_four_with_R2T(df, colum_list[0], colum_list[1], colum_list[2], colum_list[3])
 
         start = time.perf_counter()
         D_origin = count_query.expand_data(D_origin, value_dimen_origin, value_dimen_process)
         D_noise = count_query.expand_data(D_noise, value_dimen_origin, value_dimen_process)
-        if clip_method=="noop":
-            clip_noise = D_noise
-        else:
-            clip_noise = count_query.expand_data(clip_noise, value_dimen_origin, value_dimen_process)
-
+        
         # err, eval_num = compute_error(D_noise, D_origin, p)
         err, eval_num = compute_random_error(clip_noise, D_origin, [10,100,1000,10000])
         # for q in range(1,11):
@@ -540,10 +469,7 @@ if __name__ == "__main__":
         else:
             if clip_method == "April":
                 df = clip_target_column(df)
-            elif clip_method == "SVTP":
-                m_domain = np.int(df[target_column].max()+1)
-                max_range = clip_target_column_SVT(df, m_domain*30, m_domain, value_dimen_process, epsilon, colum_list[0], colum_list[1], colum_list[2], colum_list[3])
-                df = auto_trip.data_trip(df, target_column, 0, max_range)
+
 
             start = time.perf_counter()
 

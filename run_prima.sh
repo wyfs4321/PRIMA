@@ -1,4 +1,4 @@
-# April
+# Notice that in the program 'April' refers to PRIMA
 # epsilon test
 python prefix_sum.py --alpha 1  --beta 0 --epsilon 1 --value_dimen_origin 30 --target_column 12 --n 100000 --clip_method April --disable_maxentropy False
 python prefix_sum.py --alpha 1  --beta 0 --epsilon 2 --value_dimen_origin 30 --target_column 12 --n 100000 --clip_method April --disable_maxentropy False

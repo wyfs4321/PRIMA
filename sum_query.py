@@ -1,4 +1,4 @@
-import max_entropy
+import construction
 import pandas as pd
 import numpy as np
 import pprint
