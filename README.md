@@ -1,7 +1,11 @@
 # PRIMA
 
-> This repository contains the source code of PRIMA, which is based on Python v3.6.7.
+> This repository contains the source code of PRIMA.
 ****
+
+# Environment
+We implement all the approaches in Python v3.6.7. All experiments are conducted on an Intel Core i5 2.50GHz PC with 8GB RAM.
+
 # Structure of program
 In PRIMA, the code is stored in 9 files:
 |File name|Usage|
