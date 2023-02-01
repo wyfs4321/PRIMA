@@ -1,5 +1,5 @@
-#In the program, we implement the hypothesis testing by adopting Scipy.
-# Since Scipy cannot support the hypothesis testing of n-D (n>=4) noisy sum vector,
+# We implement the hypothesis testing by adopting Scipy.
+# Since Scipy can only support the hypothesis testing over 2-D noisy sum vector,
 # for easy to implement, we first predict the distribution of 2-D noisy sum vectors via hypothesis testing,
 # and then estimate the distribution of  4-D noisy sum vectors via maximum entropy model.
 
