@@ -1,6 +1,6 @@
 # PRIMA
 
-> This repository contains the source code of PRIMA.
+> This repository contains the source code of PRIMA, which is based on Python v3.6.7.
 ****
 # Structure of program
 In PRIMA, the code is stored in 9 files:
