@@ -4,7 +4,7 @@
 ****
 
 # Environment
-We implement all the approaches in Python v3.6.7. All experiments are conducted on an Intel Core i5 2.50GHz PC with 8GB RAM.
+We implement PRIMA in Python v3.6.7. All experiments are conducted on an Intel Core i5 2.50GHz PC with 8GB RAM.
 
 # Structure of program
 In PRIMA, the code is stored in 9 files:
